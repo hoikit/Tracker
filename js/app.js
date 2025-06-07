@@ -46,8 +46,7 @@ class GameTimeTracker {
         
         // Data controls
         this.saveButton.addEventListener('click', () => this.saveData(true)); // Pass true to save to default location
-        this.loadButton.addEventListener('click', () => this.fileInput.click());
-        this.fileInput.addEventListener('change', (e) => this.loadData(e));
+        this.loadButton.addEventListener('click', () => this.loadFromDatabase());
         
         // Game selection
         this.gameSelect.addEventListener('change', () => {
@@ -109,6 +108,9 @@ class GameTimeTracker {
         // Save to local storage
         this.saveSessionsToLocalStorage();
         
+        // Save to SQLite database
+        this.saveData(true);
+        
         // Update UI
         this.startButton.disabled = false;
         this.endButton.disabled = true;
@@ -148,8 +150,8 @@ class GameTimeTracker {
     }
     
     /**
-     * Save sessions to Excel file
-     * @param {boolean} saveToDefault - Whether to save to default location (IndexedDB)
+     * Save sessions to SQLite database
+     * @param {boolean} saveToDefault - Whether to save to default location
      */
     saveData(saveToDefault = false) {
         if (this.sessions.length === 0) {
@@ -157,50 +159,33 @@ class GameTimeTracker {
             return;
         }
         
-        // Use ExcelHandler to save data
-        const success = excelHandler.saveToExcel(this.sessions, saveToDefault);
-        
-        if (success) {
-            if (saveToDefault) {
-                alert('Data saved successfully to Excel and default location!');
-            } else {
-                alert('Data saved successfully!');
-            }
-        } else {
-            alert('Failed to save data. Please try again.');
-        }
+        // Use SQLiteHandler to save data
+        sqliteHandler.saveToDatabase(this.sessions)
+            .then(() => {
+                return;
+            })
+            .catch(error => {
+                alert('Failed to save data: ' + error.message);
+            });
     }
     
     /**
-     * Load sessions from Excel file
+     * Load sessions from SQLite database
      */
-    loadData(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        
-        // Use ExcelHandler to load data
-        excelHandler.loadFromExcel(file)
+    loadFromDatabase() {
+        // Use SQLiteHandler to load data
+        sqliteHandler.loadFromDatabase()
             .then(sessions => {
-                // Confirm before overwriting existing data
-                if (this.sessions.length > 0) {
-                    if (!confirm('This will replace your existing data. Continue?')) {
-                        return;
-                    }
-                }
-                
                 this.sessions = sessions;
                 this.saveSessionsToLocalStorage();
                 this.updateStatsDisplay();
                 this.updateChart();
                 
-                alert('Data loaded successfully!');
+                alert('Data loaded successfully from database!');
             })
             .catch(error => {
                 alert('Failed to load data: ' + error.message);
             });
-        
-        // Reset file input
-        event.target.value = '';
     }
     
     /**
@@ -279,7 +264,7 @@ class GameTimeTracker {
         }
         
         // Prepare data for chart
-        const chartData = excelHandler.prepareDailyTrendData(this.sessions);
+        const chartData = sqliteHandler.prepareDailyTrendData(this.sessions);
         
         // Update chart
         this.chart.data = chartData;
@@ -296,7 +281,7 @@ class GameTimeTracker {
         }
         
         // Generate stats
-        const stats = excelHandler.generateSummaryStats(this.sessions);
+        const stats = sqliteHandler.generateSummaryStats(this.sessions);
         
         // Format time values
         const totalHours = Math.floor(stats.totalTimeMinutes / 60);
@@ -339,34 +324,28 @@ class GameTimeTracker {
         
         this.statsContent.innerHTML = html;
     }
-}
-
+    
     /**
-     * Load sessions from default location (IndexedDB)
+     * Load sessions from default location (SQLite database)
      */
     loadFromDefaultLocation() {
-        excelHandler.loadFromDefaultLocation()
+        sqliteHandler.loadFromDefaultLocation()
             .then(sessions => {
                 if (sessions && sessions.length > 0) {
-                    // Confirm before overwriting existing data if there's any
-                    if (this.sessions.length > 0) {
-                        if (!confirm('This will replace your existing data. Continue?')) {
-                            return;
-                        }
-                    }
                     
                     this.sessions = sessions;
                     this.saveSessionsToLocalStorage();
                     this.updateStatsDisplay();
                     this.updateChart();
                     
-                    console.log('Data loaded from default location successfully!');
+                    console.log('Data loaded from database successfully!');
                 }
             })
             .catch(error => {
-                console.error('Failed to load data from default location:', error);
+                console.error('Failed to load data from database:', error);
             });
     }
+}
 
 // Initialize the application when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', () => {
@@ -375,5 +354,5 @@ document.addEventListener('DOMContentLoaded', () => {
     // Automatically load data from default location
     setTimeout(() => {
         window.gameTracker.loadFromDefaultLocation();
-    }, 500); // Small delay to ensure IndexedDB is initialized
+    }, 500); // Small delay to ensure database connection is initialized
 });

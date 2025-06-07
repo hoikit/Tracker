@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game Time Tracker</title>
     <link rel="stylesheet" href="css/styles.css">
-    <!-- SheetJS library for Excel handling -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -33,9 +31,8 @@
         </div>
         
         <div class="data-controls">
-            <button id="save-data" class="btn">Save to Excel</button>
-            <button id="load-data" class="btn">Load from Excel</button>
-            <input type="file" id="file-input" accept=".xlsx" style="display: none;">
+            <button id="save-data" class="btn">Save to Database</button>
+            <button id="load-data" class="btn">Load from Database</button>
         </div>
         
         <div class="stats-container">
@@ -54,7 +51,7 @@
 
     <!-- Chart.js for data visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="js/excel-handler.js"></script>
+    <script src="js/sqlite-handler.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
