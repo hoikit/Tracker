@@ -19,7 +19,8 @@ db.exec(`
     date TEXT NOT NULL,
     startTime TEXT NOT NULL,
     endTime TEXT,
-    durationMinutes INTEGER
+    durationMinutes INTEGER,
+    metadata TEXT
   )
 `);
 
@@ -72,18 +73,22 @@ app.post('/api/sessions/save', (req, res) => {
             
             // Insert statement
             const insert = db.prepare(`
-                INSERT INTO game_sessions (game, date, startTime, endTime, durationMinutes)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO game_sessions (game, date, startTime, endTime, durationMinutes, metadata)
+                VALUES (?, ?, ?, ?, ?, ?)
             `);
             
             // Insert each session
             for (const session of sessions) {
+                // Convert metadata object to JSON string if it exists
+                const metadata = session.metadata ? JSON.stringify(session.metadata) : null;
+                
                 insert.run(
                     session.game,
                     session.date,
                     session.startTime,
                     session.endTime,
-                    session.durationMinutes
+                    session.durationMinutes,
+                    metadata
                 );
             }
         });
@@ -103,6 +108,33 @@ app.get('/api/sessions/load', (req, res) => {
     try {
         // Query all sessions
         const sessions = db.prepare('SELECT * FROM game_sessions').all();
+        
+        // Process sessions to ensure consistent format
+        sessions.forEach(session => {
+            // Parse metadata JSON strings back to objects
+            if (session.metadata) {
+                try {
+                    session.metadata = JSON.parse(session.metadata);
+                } catch (e) {
+                    console.error('Error parsing metadata JSON:', e);
+                    session.metadata = {};
+                }
+            } else {
+                session.metadata = {};
+            }
+            
+            // Ensure date is in YYYY-MM-DD format
+            if (session.date) {
+                // If it's not already in YYYY-MM-DD format, convert it
+                if (!session.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    const dateObj = new Date(session.date);
+                    session.date = dateObj.toISOString().split('T')[0];
+                }
+            }
+            
+            // Log the session date for debugging
+            console.log(`Session date: ${session.date}, game: ${session.game}, duration: ${session.durationMinutes}`);
+        });
         
         res.status(200).json({ sessions });
     } catch (error) {
@@ -127,6 +159,41 @@ app.get('/api/sessions/stats', (req, res) => {
         const valorantMinutes = db.prepare("SELECT SUM(durationMinutes) as total FROM game_sessions WHERE game = 'valorant'").get().total || 0;
         const kovaaksMinutes = db.prepare("SELECT SUM(durationMinutes) as total FROM game_sessions WHERE game = 'kovaaks'").get().total || 0;
         
+        // Get all sessions with metadata for detailed stats
+        const sessions = db.prepare('SELECT * FROM game_sessions').all();
+        
+        // Parse metadata JSON strings back to objects
+        sessions.forEach(session => {
+            if (session.metadata) {
+                try {
+                    session.metadata = JSON.parse(session.metadata);
+                } catch (e) {
+                    console.error('Error parsing metadata JSON:', e);
+                    session.metadata = {};
+                }
+            } else {
+                session.metadata = {};
+            }
+        });
+        
+        // Process metadata for Valorant match types
+        const valorantMatchTypes = {};
+        // Process metadata for Kovaaks aim training types
+        const kovaaksAimTypes = {};
+        
+        sessions.forEach(session => {
+            if (session.game === 'valorant' && session.metadata && session.metadata.matchTypes) {
+                Object.entries(session.metadata.matchTypes).forEach(([type, count]) => {
+                    valorantMatchTypes[type] = (valorantMatchTypes[type] || 0) + count;
+                });
+            }
+            
+            if (session.game === 'kovaaks' && session.metadata && session.metadata.aimType) {
+                const aimType = session.metadata.aimType;
+                kovaaksAimTypes[aimType] = (kovaaksAimTypes[aimType] || 0) + session.durationMinutes;
+            }
+        });
+        
         const stats = {
             totalSessions,
             totalTimeMinutes,
@@ -134,7 +201,9 @@ app.get('/api/sessions/stats', (req, res) => {
             gameBreakdown: {
                 valorant: valorantMinutes,
                 kovaaks: kovaaksMinutes
-            }
+            },
+            valorantMatchTypes,
+            kovaaksAimTypes
         };
         
         res.status(200).json({ stats });

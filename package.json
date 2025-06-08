@@ -2,10 +2,17 @@
   "name": "game-time-tracker",
   "version": "1.0.0",
   "description": "A web application to track time spent on games",
-  "main": "server.js",
+  "main": "main.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "electron": "electron .",
+    "electron-dev": "set NODE_ENV=development && electron .",
+    "start-app": "node start-app.js",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "build": "node build.js",
+    "postinstall": "electron-builder install-app-deps"
   },
   "keywords": [
     "game",
@@ -18,9 +25,44 @@
   "dependencies": {
     "better-sqlite3": "^11.10.0",
     "express": "^4.18.2",
-    "multer": "^1.4.5-lts.1"
+    "multer": "^1.4.5-lts.1",
+    "portfinder": "^1.0.37"
   },
   "devDependencies": {
+    "electron": "^36.4.0",
+    "electron-builder": "^26.0.12",
     "nodemon": "^3.0.1"
+  },
+  "build": {
+    "appId": "com.gametracker.app",
+    "productName": "Game Time Tracker",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/*.d.ts",
+      "!**/node_modules/.bin",
+      "!**/.{idea,git,cache,github,vscode}",
+      "!**/{.DS_Store,.git,.gitignore,.npmignore}"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "assets/icon.icns"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }

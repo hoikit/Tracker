@@ -60,21 +60,43 @@ class SQLiteHandler {
                     return response.json();
                 })
                 .then(data => {
-                    // Parse date strings to Date objects
+                    // Process sessions to ensure consistent date formats
                     const sessions = data.sessions;
                     sessions.forEach(session => {
+                        // Ensure date is in YYYY-MM-DD format for consistency
                         if (session.date) {
-                            session.date = new Date(session.date);
+                            // If it's already a string in YYYY-MM-DD format, keep it
+                            if (typeof session.date === 'string' && session.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                                // Keep as is
+                            } else {
+                                // Convert to YYYY-MM-DD string format
+                                const dateObj = new Date(session.date);
+                                session.date = dateObj.toISOString().split('T')[0];
+                            }
                         }
-                        if (session.startTime) {
-                            session.startTime = new Date(session.startTime);
+                        
+                        // Keep startTime and endTime as ISO strings for consistency
+                        if (session.startTime && typeof session.startTime !== 'string') {
+                            session.startTime = new Date(session.startTime).toISOString();
                         }
-                        if (session.endTime) {
-                            session.endTime = new Date(session.endTime);
+                        
+                        if (session.endTime && typeof session.endTime !== 'string') {
+                            session.endTime = new Date(session.endTime).toISOString();
+                        }
+                        
+                        // Ensure metadata is parsed if it's a string
+                        if (session.metadata && typeof session.metadata === 'string') {
+                            try {
+                                session.metadata = JSON.parse(session.metadata);
+                            } catch (e) {
+                                console.error('Error parsing metadata JSON:', e);
+                                session.metadata = {};
+                            }
                         }
                     });
                     
                     console.log('Data loaded from SQLite database successfully');
+                    console.log('Loaded sessions:', sessions);
                     resolve(sessions);
                 })
                 .catch(error => {
@@ -158,7 +180,9 @@ class SQLiteHandler {
                 gameBreakdown: {
                     valorant: 0,
                     kovaaks: 0
-                }
+                },
+                valorantMatchTypes: {},
+                kovaaksAimTypes: {}
             };
         }
         
@@ -169,10 +193,27 @@ class SQLiteHandler {
             kovaaks: 0
         };
         
+        // Initialize metadata stats
+        const valorantMatchTypes = {};
+        const kovaaksAimTypes = {};
+        
         sessions.forEach(session => {
             const durationMinutes = session.durationMinutes || 0;
             totalTimeMinutes += durationMinutes;
             gameBreakdown[session.game] += durationMinutes;
+            
+            // Process Valorant match types
+            if (session.game === 'valorant' && session.metadata && session.metadata.matchTypes) {
+                Object.entries(session.metadata.matchTypes).forEach(([type, count]) => {
+                    valorantMatchTypes[type] = (valorantMatchTypes[type] || 0) + count;
+                });
+            }
+            
+            // Process Kovaaks aim types
+            if (session.game === 'kovaaks' && session.metadata && session.metadata.aimType) {
+                const aimType = session.metadata.aimType;
+                kovaaksAimTypes[aimType] = (kovaaksAimTypes[aimType] || 0) + durationMinutes;
+            }
         });
         
         // Calculate average session time
@@ -182,7 +223,9 @@ class SQLiteHandler {
             totalSessions: sessions.length,
             totalTimeMinutes,
             avgSessionMinutes,
-            gameBreakdown
+            gameBreakdown,
+            valorantMatchTypes,
+            kovaaksAimTypes
         };
     }
 }

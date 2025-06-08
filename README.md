@@ -1,80 +1,72 @@
 # Game Time Tracker
 
-A web-based application to track time spent playing Valorant and Kovaaks aim trainer. This application allows you to start and end timers for gaming sessions, visualize daily trends, and save/load your data in a SQLite database.
+A web application to track time spent on games, now packaged as a desktop application.
 
 ## Features
 
-- Track time spent on Valorant and Kovaaks aim trainer
-- Start and end timer functionality
-- Daily trend visualization with charts
-- Statistics summary (total time, average session, etc.)
-- Save data to SQLite database
-- Load data from SQLite database
-- Automatic saving to database when timer ends
-- Automatic loading of saved data on startup
-- Cross-platform compatibility (Windows and Mac)
-- Local storage for persistent data between sessions
+- Track time spent on different games
+- View statistics and summaries
+- Store data in SQLite database
+- Easy to use interface
 
-## How to Use
+## Development
 
-### Setup
+### Prerequisites
 
-1. Download or clone this repository to your local machine
+- Node.js (v14 or higher)
+- npm (v6 or higher)
+
+### Installation
+
+1. Clone the repository
 2. Install dependencies:
-   ```
-   npm install
-   ```
-3. Start the server:
-   ```
-   npm start
-   ```
-4. Open your web browser and navigate to:
-   ```
-   http://localhost:3000
-   ```
 
-### Tracking Game Time
+```bash
+npm install
+```
 
-1. Select the game you want to track (Valorant or Kovaaks) from the dropdown menu
-2. Click the "Start Timer" button when you begin playing
-3. Click the "End Timer" button when you finish playing
-4. Your session will be automatically saved and added to the statistics
+### Running the Application
 
-### Saving and Loading Data
+#### Web Version
 
-- Click the "Save to Database" button to save your data to the SQLite database
-- Click the "Load from Database" button to load data from the SQLite database
-  - Note: Loading data will replace your current data after confirmation
+To run the web version of the application:
 
-### Viewing Statistics
+```bash
+npm start
+```
 
-- The daily trends chart shows your gaming time by date
-- The summary section displays:
-  - Total number of sessions
-  - Total time spent gaming
-  - Average session duration
-  - Time breakdown by game
+Then open your browser and navigate to http://localhost:3000
 
-## Data Storage
+#### Desktop Version (Development)
 
-- Session data is automatically saved to your browser's local storage
-- Data is also stored in a SQLite database for persistence
-- The database file is located in the data directory
+To run the desktop version in development mode:
 
-## Browser Compatibility
+```bash
+npm run start-app
+```
 
-This application works best in modern browsers:
-- Google Chrome
-- Mozilla Firefox
-- Microsoft Edge
-- Safari
+This will start both the server and the Electron application.
 
-## Dependencies
+### Building the Desktop Application
 
-- [Chart.js](https://www.chartjs.org/) - For data visualization
-- [better-sqlite3](https://github.com/JoshuaWise/better-sqlite3) - For SQLite database handling
-- [Express](https://expressjs.com/) - For the web server
+To build the desktop application as an executable:
+
+```bash
+npm run build
+```
+
+This will create executables in the `dist` directory:
+
+- Windows: `.exe` installer
+- macOS: `.dmg` file
+- Linux: `.AppImage` file
+
+## Usage
+
+1. Launch the application
+2. Add your game sessions
+3. View statistics and summaries
 
 ## License
 
-This project is open source and available for personal use.
+MIT

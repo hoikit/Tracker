@@ -3,13 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Time Tracker</title>
+    <title>Game Time Tracker - Timer</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <div class="container">
         <header>
             <h1>Game Time Tracker</h1>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html" class="active">Timer</a></li>
+                    <li><a href="summary.html">Summary</a></li>
+                </ul>
+            </nav>
         </header>
         
         <div class="game-selector">
@@ -30,28 +36,92 @@
             </div>
         </div>
         
-        <div class="data-controls">
-            <button id="save-data" class="btn">Save to Database</button>
-            <button id="load-data" class="btn">Load from Database</button>
+        <!-- Metadata input section - initially hidden -->
+        <div id="metadata-container" class="metadata-container" style="display: none;">
+            <!-- Valorant metadata -->
+            <div id="valorant-metadata" class="game-metadata">
+                <h3>Valorant Match Details</h3>
+                <div class="match-types">
+                    <div class="match-type">
+                        <label for="deathmatch-count">Deathmatch:</label>
+                        <input type="number" id="deathmatch-count" min="0" value="0">
+                    </div>
+                    <div class="match-type">
+                        <label for="competitive-count">Competitive:</label>
+                        <input type="number" id="competitive-count" min="0" value="0">
+                    </div>
+                    <div class="match-type">
+                        <label for="unrated-count">Unrated:</label>
+                        <input type="number" id="unrated-count" min="0" value="0">
+                    </div>
+                    <div class="match-type">
+                        <label for="spike-rush-count">Spike Rush:</label>
+                        <input type="number" id="spike-rush-count" min="0" value="0">
+                    </div>
+                </div>
+                <button id="save-metadata" class="btn">Save Session</button>
+                <button id="cancel-metadata" class="btn btn-secondary">Cancel</button>
+            </div>
+            
+            <!-- Kovaaks metadata -->
+            <div id="kovaaks-metadata" class="game-metadata">
+                <h3>Kovaaks Aim Training Type</h3>
+                <div class="aim-type-selector">
+                    <select id="aim-type-select">
+                        <option value="static-clicking">Static Clicking</option>
+                        <option value="dynamic-clicking">Dynamic Clicking</option>
+                        <option value="tracking">Tracking</option>
+                        <option value="target-switching">Target Switching</option>
+                    </select>
+                </div>
+                <button id="save-kovaaks-metadata" class="btn">Save Session</button>
+                <button id="cancel-kovaaks-metadata" class="btn btn-secondary">Cancel</button>
+            </div>
         </div>
         
-        <div class="stats-container">
-            <h2>Daily Trends</h2>
-            <div class="chart-container">
-                <canvas id="daily-chart"></canvas>
-            </div>
-            <div class="stats-summary">
-                <h3>Summary</h3>
-                <div id="stats-content">
-                    <p>No data available. Start tracking your game time!</p>
-                </div>
+        <div class="today-stats-container">
+            <h2>Today's Progress</h2>
+            <div id="today-stats-content">
+                <p>No data available for today yet.</p>
             </div>
         </div>
     </div>
+
+    <!-- Alarm notification -->
+    <div id="alarm-notification" class="alarm-notification" style="display: none;">
+        <div class="alarm-content">
+            <h3>Time Alert</h3>
+            <p>You've reached 1 hour of aim training today!</p>
+            <button id="dismiss-alarm" class="btn">Dismiss</button>
+        </div>
+    </div>
+
+    <!-- Audio for alarm -->
+    <audio id="alarm-sound" preload="auto">
+        <source src="https://assets.coderrocketfuel.com/pomodoro-times-up.mp3" type="audio/mp3">
+        Your browser does not support the audio element.
+    </audio>
 
     <!-- Chart.js for data visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="js/sqlite-handler.js"></script>
     <script src="js/app.js"></script>
+    <script>
+        // Ensure Today's Progress is updated when navigating back to this page
+        window.addEventListener('pageshow', function(event) {
+            // The pageshow event fires when the page is shown, including when navigating back to it
+            // The persisted property is true if the page is being restored from the bfcache
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                // If page is restored from cache (like when using back button)
+                console.log('Page restored from cache, refreshing Today\'s Progress');
+                if (window.gameTracker) {
+                    // Ensure gameTracker is initialized
+                    setTimeout(() => {
+                        window.gameTracker.loadFromDefaultLocation();
+                    }, 100);
+                }
+            }
+        });
+    </script>
 </body>
 </html>
