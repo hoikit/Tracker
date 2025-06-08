@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Time Tracker - Summary</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Game Time Tracker</h1>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html">Timer</a></li>
+                    <li><a href="summary.html" class="active">Summary</a></li>
+                </ul>
+            </nav>
+        </header>
+        
+        <div class="stats-container">
+            <h2>Daily Trends</h2>
+            <div class="chart-container">
+                <canvas id="daily-chart"></canvas>
+            </div>
+            <div class="stats-summary">
+                <h3>Summary</h3>
+                <div id="stats-content">
+                    <p>No data available. Start tracking your game time!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/sqlite-handler.js"></script>
+    <script src="js/summary.js"></script>
+</body>
+</html>
